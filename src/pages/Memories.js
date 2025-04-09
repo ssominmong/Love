@@ -46,37 +46,37 @@ export default function Memories() {
 
   const handleAdd = async () => {
     if (!form.date || !form.title || !form.note) {
-      alert("모든 내용을 입력해주세요!");
+      alert("모든 항목을 입력해주세요!");
       return;
     }
-
+  
     try {
       let imageUrl = "";
-
+  
       if (form.imageFile) {
         console.log("📤 이미지 업로드 중...");
         const imageRef = ref(storage, `images/${Date.now()}_${form.imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, form.imageFile);
-        imageUrl = await getDownloadURL(snapshot.ref);
-        console.log("✅ 이미지 업로드 완료:", imageUrl);
+        const snapshot = await uploadBytes(imageRef, form.imageFile); // ✅ 이게 핵심
+        imageUrl = await getDownloadURL(snapshot.ref); // ✅ 반드시 SDK로 URL 생성
+        console.log("✅ 업로드 완료 URL:", imageUrl);
       }
-
+  
       await addDoc(collection(db, "memories"), {
         title: form.title,
         note: form.note,
         date: form.date,
-        image: imageUrl
+        image: imageUrl,
       });
-
+  
       alert("추억이 저장되었습니다! 💖");
       setForm({ date: "", title: "", note: "", imageFile: null });
       setShowModal(false);
     } catch (err) {
-      console.error("❌ 저장 실패:", err);
+      console.error("❌ 추억 저장 실패:", err);
       alert("저장 중 오류가 발생했어요 😢");
     }
   };
-
+  
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, "memories", id));
   };

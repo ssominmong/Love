@@ -19,27 +19,26 @@ export default function Memories() {
   });
   const [showModal, setShowModal] = useState(false);
 
-  const memoriesRef = collection(db, "memories");
-
-  // 🔄 실시간 데이터 감지
+  // ✅ useEffect 내부에서 memoriesRef를 정의하고 실시간 구독 연결
   useEffect(() => {
+    const memoriesRef = collection(db, "memories");
     const unsubscribe = onSnapshot(memoriesRef, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setMemories(data);
     });
-    return unsubscribe;
-  }, []);
 
-  // 입력 폼 제어
+    return () => unsubscribe(); // cleanup
+  }, [db]);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
-  // 이미지 업로드
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
     const reader = new FileReader();
     reader.onloadend = () => {
       setForm((prev) => ({ ...prev, image: reader.result }));
@@ -47,15 +46,13 @@ export default function Memories() {
     reader.readAsDataURL(file);
   };
 
-  // 추억 저장
   const handleAdd = async () => {
     if (!form.date || !form.title || !form.note) return;
-    await addDoc(memoriesRef, form);
+    await addDoc(collection(db, "memories"), form);
     setForm({ date: "", title: "", note: "", image: "" });
     setShowModal(false);
   };
 
-  // 삭제
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, "memories", id));
   };
@@ -128,7 +125,7 @@ export default function Memories() {
           </div>
         )}
 
-        {/* 카드 목록 */}
+        {/* 추억 카드 목록 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {memories.map((memory, index) => (
             <motion.div
@@ -137,7 +134,7 @@ export default function Memories() {
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.15 }}
+              transition={{ delay: index * 0.1 }}
             >
               <h3 className="text-xl font-semibold text-pink-700 mb-2">{memory.title}</h3>
               <p className="text-sm text-gray-500 mb-1">{memory.date}</p>

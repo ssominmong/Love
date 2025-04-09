@@ -6,12 +6,7 @@ import {
   deleteDoc,
   doc
 } from "firebase/firestore";
-import {
-  ref,
-  uploadBytes,
-  getDownloadURL
-} from "firebase/storage";
-import { db, storage } from "../firebase";
+import { db } from "../firebase";
 import { motion } from "framer-motion";
 
 export default function Memories() {
@@ -19,8 +14,7 @@ export default function Memories() {
   const [form, setForm] = useState({
     date: "",
     title: "",
-    note: "",
-    imageFile: null
+    note: ""
   });
   const [showModal, setShowModal] = useState(false);
 
@@ -38,48 +32,28 @@ export default function Memories() {
     setForm({ ...form, [name]: value });
   };
 
-  const handleImageUpload = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setForm((prev) => ({ ...prev, imageFile: file }));
-  };
-
   const handleAdd = async () => {
     if (!form.date || !form.title || !form.note) {
       alert("모든 항목을 입력해주세요!");
       return;
     }
-  
-    try {
-      let imageUrl = "";
-  
-      if (form.imageFile) {
-        console.log("📤 이미지 업로드 중...");
-        const imageRef = ref(storage, `images/${Date.now()}_${form.imageFile.name}`);
-        const snapshot = await uploadBytes(imageRef, form.imageFile); // ✅ 이게 핵심
-        console.log("🧪 getDownloadURL 전에 중단. 에러 발생 안 하면 uploadBytes 문제 아님");
-return;
 
-        imageUrl = await getDownloadURL(snapshot.ref); // ✅ 반드시 SDK로 URL 생성
-        console.log("✅ 업로드 완료 URL:", imageUrl);
-      }
-  
+    try {
       await addDoc(collection(db, "memories"), {
         title: form.title,
         note: form.note,
-        date: form.date,
-        image: imageUrl,
+        date: form.date
       });
-  
+
       alert("추억이 저장되었습니다! 💖");
-      setForm({ date: "", title: "", note: "", imageFile: null });
+      setForm({ date: "", title: "", note: "" });
       setShowModal(false);
     } catch (err) {
-      console.error("❌ 추억 저장 실패:", err);
+      console.error("❌ 저장 실패:", err);
       alert("저장 중 오류가 발생했어요 😢");
     }
   };
-  
+
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, "memories", id));
   };
@@ -124,19 +98,12 @@ return;
                   className="border border-pink-300 rounded-lg px-4 py-2"
                   placeholder="제목"
                 />
-                <input
+                <textarea
                   name="note"
-                  type="text"
                   value={form.note}
                   onChange={handleChange}
-                  className="border border-pink-300 rounded-lg px-4 py-2"
+                  className="border border-pink-300 rounded-lg px-4 py-2 h-24 resize-none"
                   placeholder="내용"
-                />
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageUpload}
-                  className="border border-pink-300 rounded-lg px-4 py-2"
                 />
 
                 <button
@@ -162,14 +129,7 @@ return;
             >
               <h3 className="text-xl font-semibold text-pink-700 mb-2">{memory.title}</h3>
               <p className="text-sm text-gray-500 mb-1">{memory.date}</p>
-              <p className="text-gray-700 mb-2">{memory.note}</p>
-              {memory.image && (
-                <img
-                  src={memory.image}
-                  alt="기억 사진"
-                  className="w-full h-48 object-cover rounded-xl mt-4"
-                />
-              )}
+              <p className="text-gray-700 mb-2 whitespace-pre-line">{memory.note}</p>
               <button
                 onClick={() => handleDelete(memory.id)}
                 className="absolute top-3 right-3 text-sm text-red-400 hover:text-red-600"

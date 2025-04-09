@@ -21,15 +21,16 @@ export default function Memories() {
 
   // ✅ useEffect 내부에서 memoriesRef를 정의하고 실시간 구독 연결
   useEffect(() => {
-    const memoriesRef = collection(db, "memories");
+    const memoriesRef = collection(db, "memories"); // ✅ useEffect 안에서 정의
+  
     const unsubscribe = onSnapshot(memoriesRef, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setMemories(data);
     });
-
-    return () => unsubscribe(); // cleanup
-  }, [db]);
-
+  
+    return () => unsubscribe();
+  }, []); // ✅ dependency 배열 비워두기
+  
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });

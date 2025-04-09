@@ -17,12 +17,16 @@ export default function Letters() {
 
   // 실시간 감지로 편지 불러오기
   useEffect(() => {
+    const lettersRef = collection(db, "letters"); // ✅ useEffect 내부로 옮기기
+  
     const unsubscribe = onSnapshot(lettersRef, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setLetters(data);
     });
+  
     return unsubscribe;
   }, []);
+  
 
   const handleChange = (e) => {
     const { name, value } = e.target;

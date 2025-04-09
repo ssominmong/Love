@@ -57,6 +57,9 @@ export default function Memories() {
         console.log("📤 이미지 업로드 중...");
         const imageRef = ref(storage, `images/${Date.now()}_${form.imageFile.name}`);
         const snapshot = await uploadBytes(imageRef, form.imageFile); // ✅ 이게 핵심
+        console.log("🧪 getDownloadURL 전에 중단. 에러 발생 안 하면 uploadBytes 문제 아님");
+return;
+
         imageUrl = await getDownloadURL(snapshot.ref); // ✅ 반드시 SDK로 URL 생성
         console.log("✅ 업로드 완료 URL:", imageUrl);
       }

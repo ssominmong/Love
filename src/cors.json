@@ -1,7 +1,8 @@
 [
     {
-      "origin": ["https://love-weld-five.vercel.app"],
+      "origin": ["*"],
       "method": ["GET", "POST", "PUT", "DELETE"],
+      "responseHeader": ["Content-Type"],
       "maxAgeSeconds": 3600
     }
   ]

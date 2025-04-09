@@ -20,7 +20,7 @@ export default function Memories() {
     date: "",
     title: "",
     note: "",
-    imageFile: null // ✅ 파일 자체 저장
+    imageFile: null
   });
   const [showModal, setShowModal] = useState(false);
 
@@ -46,43 +46,36 @@ export default function Memories() {
 
   const handleAdd = async () => {
     if (!form.date || !form.title || !form.note) {
-      alert("제목, 내용, 날짜를 모두 입력해주세요!");
+      alert("모든 내용을 입력해주세요!");
       return;
     }
-  
+
     try {
       let imageUrl = "";
-  
+
       if (form.imageFile) {
-        console.log("📤 이미지 업로드 시작");
+        console.log("📤 이미지 업로드 중...");
         const imageRef = ref(storage, `images/${Date.now()}_${form.imageFile.name}`);
         const snapshot = await uploadBytes(imageRef, form.imageFile);
-        console.log("✅ 이미지 업로드 완료:", snapshot);
-  
         imageUrl = await getDownloadURL(snapshot.ref);
-        console.log("🔗 다운로드 URL 생성 완료:", imageUrl);
-      } else {
-        console.log("📎 이미지 없이 추억을 저장합니다");
+        console.log("✅ 이미지 업로드 완료:", imageUrl);
       }
-  
+
       await addDoc(collection(db, "memories"), {
         title: form.title,
         note: form.note,
         date: form.date,
-        image: imageUrl,
+        image: imageUrl
       });
-  
-      console.log("📚 추억 Firestore에 저장 완료");
-      alert("추억이 성공적으로 저장되었어요! 💗");
-  
+
+      alert("추억이 저장되었습니다! 💖");
       setForm({ date: "", title: "", note: "", imageFile: null });
       setShowModal(false);
     } catch (err) {
-      console.error("❌ 저장 중 오류 발생:", err);
-      alert("저장 중 문제가 발생했어요 😢 콘솔을 확인해주세요.");
+      console.error("❌ 저장 실패:", err);
+      alert("저장 중 오류가 발생했어요 😢");
     }
   };
-  
 
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, "memories", id));

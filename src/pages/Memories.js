@@ -1,34 +1,45 @@
 import { useState, useEffect } from "react";
+import {
+  collection,
+  addDoc,
+  onSnapshot,
+  deleteDoc,
+  doc
+} from "firebase/firestore";
+import { db } from "../firebase";
 import { motion } from "framer-motion";
 
 export default function Memories() {
-  const getInitialMemories = () => {
-    try {
-      const saved = localStorage.getItem("memories");
-      return saved ? JSON.parse(saved) : [];
-    } catch (e) {
-      console.error("추억 불러오기 실패:", e);
-      return [];
-    }
-  };
-
-  const [memories, setMemories] = useState(getInitialMemories());
-  const [form, setForm] = useState({ date: "", title: "", note: "", image: "" });
+  const [memories, setMemories] = useState([]);
+  const [form, setForm] = useState({
+    date: "",
+    title: "",
+    note: "",
+    image: ""
+  });
   const [showModal, setShowModal] = useState(false);
 
-  useEffect(() => {
-    localStorage.setItem("memories", JSON.stringify(memories));
-  }, [memories]);
+  const memoriesRef = collection(db, "memories");
 
+  // 🔄 실시간 데이터 감지
+  useEffect(() => {
+    const unsubscribe = onSnapshot(memoriesRef, (snapshot) => {
+      const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
+      setMemories(data);
+    });
+    return unsubscribe;
+  }, []);
+
+  // 입력 폼 제어
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
   };
 
+  // 이미지 업로드
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onloadend = () => {
       setForm((prev) => ({ ...prev, image: reader.result }));
@@ -36,17 +47,17 @@ export default function Memories() {
     reader.readAsDataURL(file);
   };
 
-  const handleAdd = () => {
+  // 추억 저장
+  const handleAdd = async () => {
     if (!form.date || !form.title || !form.note) return;
-    const newMemory = { ...form };
-    setMemories([newMemory, ...memories]);
+    await addDoc(memoriesRef, form);
     setForm({ date: "", title: "", note: "", image: "" });
-    setShowModal(false); // 모달 닫기
+    setShowModal(false);
   };
 
-  const handleDelete = (indexToDelete) => {
-    const updated = memories.filter((_, i) => i !== indexToDelete);
-    setMemories(updated);
+  // 삭제
+  const handleDelete = async (id) => {
+    await deleteDoc(doc(db, "memories", id));
   };
 
   return (
@@ -54,6 +65,7 @@ export default function Memories() {
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl font-bold text-pink-600 mb-8">📚 우리의 추억 아카이브</h2>
 
+        {/* 모달 열기 버튼 */}
         <button
           onClick={() => setShowModal(true)}
           className="mb-10 bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition"
@@ -116,16 +128,16 @@ export default function Memories() {
           </div>
         )}
 
-        {/* 추억 카드 목록 */}
+        {/* 카드 목록 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {memories.map((memory, index) => (
             <motion.div
-              key={index}
+              key={memory.id}
               className="bg-rose-50 p-6 rounded-2xl shadow hover:shadow-lg transition-all text-left relative"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: index * 0.1 }}
+              transition={{ delay: index * 0.15 }}
             >
               <h3 className="text-xl font-semibold text-pink-700 mb-2">{memory.title}</h3>
               <p className="text-sm text-gray-500 mb-1">{memory.date}</p>
@@ -133,12 +145,12 @@ export default function Memories() {
               {memory.image && (
                 <img
                   src={memory.image}
-                  alt="추억"
-                  className="w-full h-48 object-cover rounded-xl mt-2"
+                  alt="기억 사진"
+                  className="w-full h-48 object-cover rounded-xl mt-4"
                 />
               )}
               <button
-                onClick={() => handleDelete(index)}
+                onClick={() => handleDelete(memory.id)}
                 className="absolute top-3 right-3 text-sm text-red-400 hover:text-red-600"
               >
                 삭제

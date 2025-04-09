@@ -6,7 +6,12 @@ import {
   deleteDoc,
   doc
 } from "firebase/firestore";
-import { db } from "../firebase";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "firebase/storage";
+import { db, storage } from "../firebase";
 import { motion } from "framer-motion";
 
 export default function Memories() {
@@ -15,22 +20,19 @@ export default function Memories() {
     date: "",
     title: "",
     note: "",
-    image: ""
+    imageFile: null // ✅ 파일 자체 저장
   });
   const [showModal, setShowModal] = useState(false);
 
-  // ✅ useEffect 내부에서 memoriesRef를 정의하고 실시간 구독 연결
   useEffect(() => {
-    const memoriesRef = collection(db, "memories"); // ✅ useEffect 안에서 정의
-  
+    const memoriesRef = collection(db, "memories");
     const unsubscribe = onSnapshot(memoriesRef, (snapshot) => {
       const data = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
       setMemories(data);
     });
-  
     return () => unsubscribe();
-  }, []); // ✅ dependency 배열 비워두기
-  
+  }, []);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setForm({ ...form, [name]: value });
@@ -39,19 +41,35 @@ export default function Memories() {
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setForm((prev) => ({ ...prev, image: reader.result }));
-    };
-    reader.readAsDataURL(file);
+    setForm((prev) => ({ ...prev, imageFile: file }));
   };
 
   const handleAdd = async () => {
     if (!form.date || !form.title || !form.note) return;
-    await addDoc(collection(db, "memories"), form);
-    setForm({ date: "", title: "", note: "", image: "" });
-    setShowModal(false);
+
+    try {
+      let imageUrl = "";
+
+      if (form.imageFile) {
+        const imageRef = ref(storage, `images/${Date.now()}_${form.imageFile.name}`);
+        const snapshot = await uploadBytes(imageRef, form.imageFile);
+        imageUrl = await getDownloadURL(snapshot.ref);
+      }
+
+      await addDoc(collection(db, "memories"), {
+        title: form.title,
+        note: form.note,
+        date: form.date,
+        image: imageUrl
+      });
+
+      console.log("✅ 추억 추가됨");
+      setForm({ date: "", title: "", note: "", imageFile: null });
+      setShowModal(false);
+    } catch (err) {
+      console.error("❌ 추억 저장 실패:", err);
+      alert("추억 저장 중 오류가 발생했어요 😢");
+    }
   };
 
   const handleDelete = async (id) => {
@@ -63,7 +81,6 @@ export default function Memories() {
       <div className="max-w-4xl mx-auto text-center">
         <h2 className="text-3xl font-bold text-pink-600 mb-8">📚 우리의 추억 아카이브</h2>
 
-        {/* 모달 열기 버튼 */}
         <button
           onClick={() => setShowModal(true)}
           className="mb-10 bg-pink-500 text-white px-6 py-2 rounded-full hover:bg-pink-600 transition"
@@ -71,7 +88,6 @@ export default function Memories() {
           ➕ 추억 추가하기
         </button>
 
-        {/* 모달 */}
         {showModal && (
           <div className="fixed inset-0 bg-black bg-opacity-30 backdrop-blur-sm flex items-center justify-center z-50">
             <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-lg relative">
@@ -126,7 +142,6 @@ export default function Memories() {
           </div>
         )}
 
-        {/* 추억 카드 목록 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {memories.map((memory, index) => (
             <motion.div

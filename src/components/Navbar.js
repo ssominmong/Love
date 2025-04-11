@@ -16,7 +16,7 @@ export default function Navbar() {
     <nav className="fixed top-0 w-full z-50 bg-white/70 backdrop-blur-md shadow-sm">
       <div className="max-w-6xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link to="/" className="text-xl font-bold text-pink-600">
-          💖 SH & MC's diary
+          💖 쏘밍몽 다이어리 💖
         </Link>
 
         <div className="flex flex-row gap-4">

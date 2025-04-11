@@ -12,7 +12,7 @@ export default function Home() {
       >
         KMC 💖 KSH
         <br className="hidden md:block" />
-        평생 함께하자 
+
       </motion.h1>
 
       <motion.p
@@ -21,8 +21,9 @@ export default function Home() {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        너와 함께한 하루하루가 소중한 기억이야.  
-        이 웹사이트는 오직 너만을 위한 감성 기록장이야.
+        우리의 소중한 기억.
+        <br className="hidden md:block" />
+        평생 같이 하자!
       </motion.p>
 
       <Link to="/memories">

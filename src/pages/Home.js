@@ -7,7 +7,7 @@ export default function Home() {
   const [daysTogether, setDaysTogether] = useState(0);
 
   // ✅ 사귄 날짜를 여기 설정!
-  const startDate = dayjs("2022-07-20");
+  const startDate = dayjs("2022-07-18");
 
   useEffect(() => {
     const today = dayjs();

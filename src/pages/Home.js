@@ -10,9 +10,9 @@ export default function Home() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.8 }}
       >
-        우리 1000일,  
+        KMC 💖 KSH
         <br className="hidden md:block" />
-        사랑의 기록을 남겼어요
+        평생 함께하자 
       </motion.h1>
 
       <motion.p

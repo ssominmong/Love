@@ -25,9 +25,12 @@ export default function Navbar() {
           </Link>
 
           <Link to="/letters" className={linkClass("/letters")}>
-  너에게
-</Link>
+            너에게
+          </Link>
 
+          <Link to="/farm" className={linkClass("/farm")}>
+            🐣 농장
+          </Link>
         </div>
       </div>
     </nav>

@@ -5,6 +5,8 @@ import Memories from "./pages/Memories";
 import About from "./pages/About";
 import HeartsBackground from "./components/HeartsBackground"; 
 import Letters from "./pages/Letters"; 
+import Farm from "./pages/Farm";
+
 
 function App() {
   return (
@@ -22,6 +24,7 @@ function App() {
           <Route path="/memories" element={<Memories />} />
           <Route path="/about" element={<About />} />
           <Route path="/letters" element={<Letters />} />
+          <Route path="/farm" element={<Farm />} />
         </Routes>
       </div>
     </Router>
